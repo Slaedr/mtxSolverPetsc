@@ -247,7 +247,7 @@ int runPetsc(const DiscreteLinearProblem lp,
 	ierr = VecSet(u, 0); CHKERRQ(ierr);
 
 	//std::vector<int> runiters(nruns);
-	int runiters[nruns];
+	int *const runiters = malloc(nruns*sizeof(int));
 
 	int irun = 0;
 	for( ; irun < nruns; irun++)
@@ -332,6 +332,7 @@ int runPetsc(const DiscreteLinearProblem lp,
 	*rel_dev = reldev;
 
 	ierr = VecDestroy(&u); CHKERRQ(ierr);
+	free(runiters);
 
 	return ierr;
 }

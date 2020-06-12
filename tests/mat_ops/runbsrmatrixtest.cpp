@@ -20,6 +20,7 @@
 #undef NDEBUG
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include "testbsrmatrix.hpp"
 
 int main(const int argc, const char *const argv[])
@@ -44,7 +45,7 @@ int main(const int argc, const char *const argv[])
 		bs = std::stoi(argv[4]);
 	}
 	catch(const std::invalid_argument& e) {
-		std::cout << "! Invalid block size!!\n";
+		std::cout << "! Invalid block size!! " << e.what() << "\n";
 		std::abort();
 	}
 	catch(const std::out_of_range& e) {

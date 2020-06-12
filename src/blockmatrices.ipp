@@ -155,7 +155,7 @@ void CSRMatrixView<scalar,index>::apply(const scalar *const xx,
 }
 
 template <typename scalar, typename index>
-void CSRMatrixView<scalar,index>::gemv3(const scalar a, const scalar *const __restrict__ xx, 
+void CSRMatrixView<scalar,index>::gemv3(const scalar a, const scalar *const __restrict xx, 
                                         const scalar b, const scalar *const yy, scalar *const zz) const
 {
 	BLAS_CSR<const scalar,const index>::gemv3(std::move(mat), a, xx, b, yy, zz);
@@ -676,7 +676,7 @@ void BSRMatrix<scalar,index,1>::apply(const scalar *const xx,
 }
 
 template <typename scalar, typename index>
-void BSRMatrix<scalar,index,1>::gemv3(const scalar a, const scalar *const __restrict__ xx,
+void BSRMatrix<scalar,index,1>::gemv3(const scalar a, const scalar *const __restrict xx,
                                       const scalar b, const scalar *const yy, scalar *const zz) const
 {
 	BLAS_CSR<scalar,index>::gemv3(std::move(mat), a, xx, b, yy, zz);

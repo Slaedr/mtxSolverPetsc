@@ -3,11 +3,10 @@ cmake_minimum_required(VERSION 3.0)
 # Variables that can/must be passed to the cmake command:
 #
 # - EIGEN3_ROOT needs to be set to the path of the Eigen top-level directory.
-# - -DWITH_PETSC=1 to compile with PETSc support; in which case
+# - PETSc support:
 #     PETSC_LIB and PETSC_ARCH variables are required.
-#     Note that in this case, MPI is required too.
+#     Note that MPI is required.
 #     It is best to pass MPI wrappers as C and CXX compilers to CMake.
-# - -DNOOMP=1 to compile without OpenMP (default build is with OpenMP)
 # - -DSSE=1 to compile with SSE 4.2 instructions (default)
 # - -DAVX=1 to compile with AVX instructions.
 # - -DAVX_2=1 to compile with AVX 2.0.
@@ -22,7 +21,7 @@ cmake_minimum_required(VERSION 3.0)
 # - -DBUILD_BLOCK_SIZE=<n> for some integer n, to build the block solver operations for
 #     an additional block size of <n>. By default, block sizes 4 and 5 are supported.
 
-project (blasted)
+project (mtxSolverPETSc)
 
 # detect C++ compiler - the C compiler must be the same type too
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
@@ -59,7 +58,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "PGI")
 	message(SEND_ERROR "C and C++ compilers should match!")
   endif()
 else()
-  message(SEND_ERROR "Could not identify compiler!")
+  message(SEND_WARNING "Could not identify compiler!")
 endif()
 
 # Basic options
@@ -85,39 +84,6 @@ elseif(CXX_COMPILER_CRAY)
   set (CMAKE_C_FLAGS "-h std=c11 -h error_on_warning")
   set (CMAKE_CXX_FLAGS_DEBUG "-g -O1")
   set (CMAKE_CXX_FLAGS_RELEASE "-O2")
-endif()
-
-# to compile with OpenMP
-if(NOOMP)
-  if(CXX_COMPILER_GNUCLANG)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
-	set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wno-unknown-pragmas")
-  endif()
-  if(CXX_COMPILER_PGI)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nomp")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nomp")
-  endif()
-  if(CXX_COMPILER_CRAY)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -hnoomp")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -hnoomp")
-  endif()
-  message(STATUS "Compiling without OpenMP")
-else()
-  if(CXX_COMPILER_GNUCLANG)
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-	message(STATUS "Compiling with OpenMP for GNU")
-  elseif(CXX_COMPILER_INTEL)
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopenmp")
-	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qopenmp")	  
-	message(STATUS "Compiling with OpenMP for Intel")
-  elseif(CXX_COMPILER_CRAY)
-	message(STATUS "Compiling with OpenMP for Cray")
-  elseif(CXX_COMPILER_PGI)
-	message(STATUS "Compiling with OpenMP for PGI")
-  else()
-	message(SEND_ERROR "Don't know OpenMP flag for this compiler!")
-  endif()
 endif()
 
 # set verbosity options
@@ -236,7 +202,7 @@ else()
 	  set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -tp=x64,nehalem")
 	endif()
 	if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-	  message(STATUS "Compiling with SSE4")
+	  message(STATUS "Compiling with SSE4 or default settings")
 	endif()
   endif()
 endif()

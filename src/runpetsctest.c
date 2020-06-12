@@ -2,7 +2,7 @@
 
 #include <petscksp.h>
 
-#include <sys/time.h>
+//#include <sys/time.h> // Unix only
 #include <time.h>
 #include <float.h>
 #include <assert.h>
