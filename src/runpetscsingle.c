@@ -28,6 +28,45 @@ PetscReal compute_error(const MPI_Comm comm, const Vec u, const Vec uexact) {
 	return errnorm;
 }
 
+/// Computes a list of row indices and the number of non-zeros in those rows, for
+///  all rows with at least as many non-zeros as the threshold.
+int getNumRowNonzeros(Mat A, const int threshold,
+                      int *const numthreshrows, int **const rowinds, int **const numcols)
+{
+	int rowbegin, rowend;
+	int ierr = MatGetOwnershipRange(A, &rowbegin, &rowend); CHKERRQ(ierr);
+	int threshrows = 0;
+
+	for(int i = rowbegin; i < rowend; i++) {
+		int ncols;
+		ierr = MatGetRow(A, i, &ncols, NULL, NULL); CHKERRQ(ierr);
+		if(ncols >= threshold)
+			threshrows++;
+		ierr = MatRestoreRow(A, i, &ncols, NULL, NULL); CHKERRQ(ierr);
+	}
+	printf("    Found %d rows more than threshold\n", threshrows);
+
+	*rowinds = (int*)malloc(threshrows*sizeof(int));
+	*numcols = (int*)malloc(threshrows*sizeof(int));
+	*numthreshrows = threshrows;
+
+	int irow = 0;
+	for(int i = rowbegin; i < rowend; i++) {
+		int ncols;
+		ierr = MatGetRow(A, i, &ncols, NULL, NULL); CHKERRQ(ierr);
+		if(ncols >= threshold) {
+			//printf(" found row %d, global row %d ", irow,i);
+			//fflush(stdout);
+			*(*rowinds + irow) = i;
+			*(*numcols + irow) = ncols;
+			irow++;
+		}
+		ierr = MatRestoreRow(A, i, &ncols, NULL, NULL); CHKERRQ(ierr);
+	}
+
+	return ierr;
+}
+
 int main(int argc, char* argv[])
 {
 	char help[] = "This program solves a linear system.\n\
@@ -81,8 +120,31 @@ int main(int argc, char* argv[])
 	else
 		xfile = NULL;
 
+	PetscBool setthreshold = PETSC_FALSE;
+	int adj_threshold;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-adj_threshold", &adj_threshold, &setthreshold); CHKERRQ(ierr);
+
 	DiscreteLinearProblem lp;
 	ierr = readLinearSystemFromFiles(matfile, bfile, xfile, &lp, true); CHKERRQ(ierr);
+
+	if(setthreshold) {
+		printf("  Threshold of row non-zeros is %d.\n", adj_threshold);
+		int  numthreshrows, *rowinds, *numcols;
+		ierr = getNumRowNonzeros(lp.lhs, adj_threshold, &numthreshrows, &rowinds, &numcols);
+
+		printf("  %d rows with large number of non-zeros are..\n", numthreshrows);
+		int maxrow = 0, maxncols = 0;
+		for(int irow = 0; irow < numthreshrows; irow++) {
+			printf("   Row %d: num non-zeros = %d.\n", rowinds[irow], numcols[irow]);
+			if(numcols[irow] > maxncols) {
+				maxncols = numcols[irow];
+				maxrow = rowinds[irow];
+			}
+		}
+		printf("  Max row is %d with %d nonzeros.\n", maxrow, maxncols); fflush(stdout);
+		free(rowinds);
+		free(numcols);
+	}
 
 	double avgkspiters = 0;
 	int *const runiters = malloc(nruns*sizeof(int));

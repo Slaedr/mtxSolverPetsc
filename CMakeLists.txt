@@ -207,6 +207,18 @@ else()
   endif()
 endif()
 
+if(OMP)
+  message(STATUS "Building with OpenMP")
+  add_definitions(-DUSE_OPENMP=1)
+  if(CXX_COMPILER_INTEL)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopenmp")
+  elseif(CXX_COMPILER_GNUCLANG)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+  else()
+	message(SEND_ERROR "Don't know OpenMP option for this compiler!")
+  endif()
+endif()
+
 # profiling
 if(PROFILE)
   message(STATUS "Building with profiling options")

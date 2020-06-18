@@ -131,7 +131,9 @@ RawBSRMatrix<scalar,index> copyRawBSRMatrix(const CRawBSRMatrix<scalar,index>& m
 	nmat.nnzb = mat.nnzb;
 	nmat.nbstored = mat.nbstored;
 
+#ifdef USE_OPENMP
 #pragma omp parallel for simd default(shared)
+#endif
 	for(index i = 0; i < mat.nbstored; i++)
 	{
 		nmat.bcolind[i] = mat.bcolind[i];
@@ -139,11 +141,15 @@ RawBSRMatrix<scalar,index> copyRawBSRMatrix(const CRawBSRMatrix<scalar,index>& m
 			nmat.vals[i*bs2+j] = mat.vals[i*bs2+j];
 	}
 
+#ifdef USE_OPENMP
 #pragma omp parallel for simd default(shared)
+#endif
 	for(index i = 0; i < mat.nbrows+1; i++)
 		nmat.browptr[i] = mat.browptr[i];
 
+#ifdef USE_OPENMP
 #pragma omp parallel for simd default(shared)
+#endif
 	for(index i = 0; i < mat.nbrows; i++)
 		nmat.diagind[i] = mat.diagind[i];
 
@@ -343,7 +349,9 @@ template CRawBSRMatrix<double,int> createRawView(const SRMatrixStorage<const dou
 template <typename scalar, typename index, int bs>
 void getScalingVector(const CRawBSRMatrix<scalar,index> *const mat, scalar *const __restrict scale)
 {
+#ifdef USE_OPENMP
 #pragma omp parallel for simd default(shared)
+#endif
 	for(int i = 0; i < mat->nbrows; i++)
 		for(int j = 0; j < bs; j++)
 			scale[i*bs + j] = 1.0/std::sqrt(mat->vals[mat->diagind[i]*bs*bs + j*bs + j]);

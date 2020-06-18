@@ -32,7 +32,9 @@ void BLAS_BSR<mscalar,mindex,bs,stor>
 	const Seg *x = reinterpret_cast<const Seg*>(xx);
 	Seg *y = reinterpret_cast<Seg*>(yy);
 
+#ifdef USE_OPENMP
 #pragma omp parallel for default(shared)
+#endif
 	for(index irow = 0; irow < mat.nbrows; irow++)
 	{
 		y[irow] = Vector<scalar>::Zero(bs);
@@ -60,7 +62,9 @@ void BLAS_BSR<mscalar,mindex,bs,stor>
 	const Seg *y = reinterpret_cast<const Seg*>(yy);
 	Seg *z = reinterpret_cast<Seg*>(zz);
 
+#ifdef USE_OPENMP
 #pragma omp parallel for default(shared)
+#endif
 	for(index irow = 0; irow < mat.nbrows; irow++)
 	{
 		z[irow] = b * y[irow];
@@ -78,7 +82,9 @@ template <typename mscalar, typename mindex>
 void BLAS_CSR<mscalar,mindex>::matrix_apply(const SRMatrixStorage<mscalar,mindex>&& mat,
                                             const scalar *const xx, scalar *const __restrict yy) 
 {
+#ifdef USE_OPENMP
 #pragma omp parallel for default(shared)
+#endif
 	for(index irow = 0; irow < mat.nbrows; irow++)
 	{
 		yy[irow] = 0;
@@ -95,7 +101,9 @@ void BLAS_CSR<mscalar,mindex>::gemv3(const SRMatrixStorage<mscalar,mindex>&& mat
                                      const scalar a, const scalar *const __restrict xx, 
                                      const scalar b, const scalar *const yy, scalar *const zz)
 {
+#ifdef USE_OPENMP
 #pragma omp parallel for default(shared)
+#endif
 	for(index irow = 0; irow < mat.nbrows; irow++)
 	{
 		zz[irow] = b * yy[irow];
